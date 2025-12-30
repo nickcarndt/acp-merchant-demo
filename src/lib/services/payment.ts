@@ -36,24 +36,35 @@ export class PaymentService {
       //   },
       // });
 
-      // For demo: Create a PaymentIntent that can be confirmed later
-      // This simulates the flow without requiring a real SharedPaymentToken
+      // For demo: Create and confirm a PaymentIntent with a test card
+      // Using off_session: true for server-side charge without customer present
       const paymentIntent = await stripe.paymentIntents.create({
         amount: checkout.total.amount,
         currency: checkout.total.currency,
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'never',
-        },
+        payment_method: 'pm_card_visa', // Stripe's test Visa card (4242424242424242)
+        confirm: true, // Immediately confirm the payment
+        off_session: true, // Server-side charge, customer not present
+        payment_method_types: ['card'], // Explicitly set payment method type
         metadata: {
           acp_checkout_id: checkout.checkout_id,
           acp_checkout_reference: checkout.checkout_reference_id,
           demo_mode: 'true',
         },
         description: `ACP Demo Order - ${checkout.line_items.map(i => i.name).join(', ')}`,
+        // Demo shipping details for the charge
+        shipping: {
+          name: 'Demo Customer',
+          address: {
+            line1: '123 Demo Street',
+            city: 'San Francisco',
+            state: 'CA',
+            postal_code: '94102',
+            country: 'US',
+          },
+        },
       });
 
-      console.log(`[PaymentService] PaymentIntent created: ${paymentIntent.id}`);
+      console.log(`[PaymentService] PaymentIntent created and confirmed: ${paymentIntent.id}, status: ${paymentIntent.status}`);
 
       return {
         paymentIntentId: paymentIntent.id,
