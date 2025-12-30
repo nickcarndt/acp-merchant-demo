@@ -6,9 +6,10 @@ interface SuccessCardProps {
   product: DemoProduct;
   orderId: string;
   total: number;
+  quantity: number;
 }
 
-export function SuccessCard({ product, orderId, total }: SuccessCardProps) {
+export function SuccessCard({ product, orderId, total, quantity }: SuccessCardProps) {
   // Calculate estimated delivery (7 days from now)
   const deliveryDate = new Date();
   deliveryDate.setDate(deliveryDate.getDate() + 7);
@@ -41,7 +42,7 @@ export function SuccessCard({ product, orderId, total }: SuccessCardProps) {
           <div>
             <h3 className="font-semibold text-gray-900 text-sm">{product.name}</h3>
             <p className="text-gray-500 text-sm">{product.variant}</p>
-            <p className="text-gray-500 text-sm">Quantity: 1</p>
+            <p className="text-gray-500 text-sm">Quantity: {quantity}</p>
           </div>
         </div>
       </div>

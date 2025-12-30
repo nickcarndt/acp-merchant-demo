@@ -118,6 +118,7 @@ export function AgentPanel({
             product={selectedProduct}
             orderId={checkoutData?.checkout_id || orderData?.order_id || 'ord_demo'}
             total={total}
+            quantity={quantity}
           />
         </div>
       )}

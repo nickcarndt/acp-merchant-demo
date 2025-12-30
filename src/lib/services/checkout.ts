@@ -83,6 +83,13 @@ export class CheckoutService {
     // Build updates object
     const updates: Partial<CheckoutSession> = {};
     
+    // Handle line item updates (quantity changes)
+    if (request.line_items && request.line_items.length > 0) {
+      const resolvedItems = this.resolveLineItems(request.line_items);
+      updates.line_items = resolvedItems;
+      updates.subtotal = this.calculateSubtotal(resolvedItems);
+    }
+    
     // Handle shipping option selection
     if (request.shipping_option_id) {
       const shippingOption = getShippingOptionById(request.shipping_option_id);

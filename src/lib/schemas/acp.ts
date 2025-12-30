@@ -41,6 +41,7 @@ export const CreateCheckoutRequestSchema = z.object({
 
 export const UpdateCheckoutRequestSchema = z.object({
   checkout_id: z.string().min(1),
+  line_items: z.array(LineItemSchema).min(1).max(50).optional(),
   shipping_option_id: z.string().optional(),
   shipping_address: AddressSchema.optional(),
   billing_address: AddressSchema.optional(),

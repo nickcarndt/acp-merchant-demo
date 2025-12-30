@@ -180,15 +180,60 @@ export function useAcpDemo() {
     }
   }, []);
 
-  const updateQuantity = useCallback((quantity: number) => {
-    if (!selectedProduct || !checkoutData) return;
+  const updateQuantity = useCallback(async (quantity: number) => {
+    if (!checkoutId || !selectedProduct || !checkoutData) return;
     
     setCurrentQuantity(quantity);
+    setIsLoading(true);
+    setArrowDirection('request');
     
-    // Update the display format with new quantity
-    const acpFormat = transformToAcpFormat(checkoutData, selectedProduct, currentShipping, quantity);
-    setCheckoutState(acpFormat);
-  }, [selectedProduct, checkoutData, currentShipping]);
+    const requestStartTime = Date.now();
+
+    const requestBody = {
+      checkout_id: checkoutId,
+      line_items: [{
+        product_id: selectedProduct.id,
+        quantity: quantity,
+      }],
+    };
+
+    try {
+      const response = await fetch('/api/acp/checkout/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${ACP_AUTH_TOKEN}`,
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      
+      // Add to request log
+      addAcpRequest('POST', '/checkouts/update', { checkout_id: checkoutId, quantity }, data);
+      
+      setCheckoutData(data);
+      
+      // Update display format with new quantity
+      const acpFormat = transformToAcpFormat(data, selectedProduct, currentShipping, quantity);
+      setCheckoutState(acpFormat);
+      
+      // Ensure request animation completes before starting response animation
+      const elapsed = Date.now() - requestStartTime;
+      const minRequestAnimationTime = 450;
+      const delay = Math.max(0, minRequestAnimationTime - elapsed);
+      
+      setTimeout(() => {
+        setArrowDirection('response');
+        setTimeout(() => setArrowDirection('none'), 500);
+      }, delay);
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      setArrowDirection('none');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [checkoutId, selectedProduct, checkoutData, currentShipping]);
 
   const selectShipping = useCallback(async (shippingId: string) => {
     if (!checkoutId || !selectedProduct) return;
@@ -329,6 +374,7 @@ export function useAcpDemo() {
     acpRequests,
     isLoading,
     arrowDirection,
+    currentQuantity,
     selectProduct,
     selectShipping,
     updateQuantity,

@@ -158,6 +158,7 @@ export interface CreateCheckoutResponse {
 
 export interface UpdateCheckoutRequest {
   checkout_id: string;
+  line_items?: LineItem[];
   shipping_option_id?: string;
   shipping_address?: Address;
   billing_address?: Address;
