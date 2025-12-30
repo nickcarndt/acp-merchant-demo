@@ -225,4 +225,4 @@ vercel --prod
 
 ## License
 
-MIT
+[MIT](LICENSE) © 2025 Nicholas Arndt
