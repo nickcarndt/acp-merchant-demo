@@ -15,7 +15,7 @@ Reference implementation of the [Agentic Commerce Protocol](https://agenticcomme
 <p align="center">
   <img src="screenshots/demo-checkout.png" width="920" alt="ACP Demo - Checkout Flow" />
   <br/>
-  <sub><b>Agent ↔ Business</b> — Real-time ACP protocol visualization with live API calls.</sub>
+  <sub><b>Checkout Flow</b> — Real-time ACP protocol visualization with live API responses.</sub>
 </p>
 
 <table>
@@ -23,12 +23,24 @@ Reference implementation of the [Agentic Commerce Protocol](https://agenticcomme
     <td align="center" width="50%">
       <img src="screenshots/demo-products.png" width="420" alt="Product selection" />
       <br/>
-      <sub><b>Product Selection</b> — Click to initiate ACP checkout flow.</sub>
+      <sub><b>Product Selection</b> — Click to initiate ACP checkout.</sub>
     </td>
     <td align="center" width="50%">
       <img src="screenshots/demo-complete.png" width="420" alt="Purchase complete" />
       <br/>
-      <sub><b>Order Complete</b> — Real PaymentIntent created in Stripe.</sub>
+      <sub><b>Order Complete</b> — Real PaymentIntent in Stripe.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="screenshots/demo-requests.png" width="420" alt="ACP request log" />
+      <br/>
+      <sub><b>Request Log</b> — Full protocol request/response history.</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="screenshots/stripe-dashboard.png" width="420" alt="Stripe dashboard" />
+      <br/>
+      <sub><b>Stripe Dashboard</b> — Real transactions from demo (test mode).</sub>
     </td>
   </tr>
 </table>

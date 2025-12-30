@@ -63,19 +63,19 @@ export function CheckoutCard({
             <p className="text-gray-500 text-sm">{product.variant}</p>
             <p className="text-gray-900 font-medium text-sm mt-1">{product.priceFormatted}</p>
           </div>
-          <div className="flex items-center gap-2 border border-gray-200 rounded-lg px-2 py-1">
+          <div className="flex items-center gap-1 border border-gray-300 rounded-lg px-2 py-1 bg-gray-50">
             <button 
               onClick={handleDecrement}
               disabled={quantity <= 1}
-              className="text-gray-400 hover:text-gray-600 p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded w-6 h-6 flex items-center justify-center font-medium disabled:opacity-30 disabled:cursor-not-allowed"
             >
               −
             </button>
-            <span className="text-sm font-medium w-4 text-center">{quantity}</span>
+            <span className="text-sm font-semibold text-gray-900 w-6 text-center">{quantity}</span>
             <button 
               onClick={handleIncrement}
               disabled={quantity >= 10}
-              className="text-gray-400 hover:text-gray-600 p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+              className="text-gray-700 hover:text-gray-900 hover:bg-gray-200 rounded w-6 h-6 flex items-center justify-center font-medium disabled:opacity-30 disabled:cursor-not-allowed"
             >
               +
             </button>
@@ -89,7 +89,8 @@ export function CheckoutCard({
         <select
           value={selectedShipping}
           onChange={(e) => onShippingChange(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none cursor-pointer"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1rem' }}
         >
           {SHIPPING_OPTIONS.map((option) => (
             <option key={option.id} value={option.id}>
