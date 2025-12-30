@@ -1,207 +1,216 @@
 # ACP Merchant Demo
 
-A reference implementation of the [Agentic Commerce Protocol](https://agenticcommerce.dev) (ACP), demonstrating how merchants can accept checkouts from AI agents like ChatGPT.
+Reference implementation of the [Agentic Commerce Protocol](https://agenticcommerce.dev) (ACP) — the open standard co-developed by Stripe and OpenAI enabling AI agents to complete purchases on behalf of users.
 
-## What is ACP?
+**Live demo:** [acp-merchant-demo.vercel.app/demo](https://acp-merchant-demo.vercel.app/demo)
 
-ACP is an open standard co-developed by Stripe and OpenAI that enables AI agents to initiate and complete purchases on behalf of users. This demo implements the merchant side of the protocol.
+## Highlights
+
+- **Full ACP Protocol** — CreateCheckout, UpdateCheckout, CompleteCheckout endpoints per spec
+- **Real Stripe Integration** — PaymentIntents created on every completed checkout
+- **Interactive Demo** — Visual representation of Agent ↔ Merchant protocol flow
+- **Webhook Support** — Handles `payment_intent.succeeded`, `payment_intent.payment_failed`
+- **Production Ready** — Zod validation, error handling, structured logging
+
+<p align="center">
+  <img src="screenshots/demo-checkout.png" width="920" alt="ACP Demo - Checkout Flow" />
+  <br/>
+  <sub><b>Agent ↔ Business</b> — Real-time ACP protocol visualization with live API calls.</sub>
+</p>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="screenshots/demo-products.png" width="420" alt="Product selection" />
+      <br/>
+      <sub><b>Product Selection</b> — Click to initiate ACP checkout flow.</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="screenshots/demo-complete.png" width="420" alt="Purchase complete" />
+      <br/>
+      <sub><b>Order Complete</b> — Real PaymentIntent created in Stripe.</sub>
+    </td>
+  </tr>
+</table>
+
+## Why This Matters
+
+ACP represents a fundamental shift in e-commerce: instead of users navigating checkout pages, AI agents handle the entire purchase flow programmatically. This demo implements the **merchant side** of that protocol.
+
+| What ACP Solves | How |
+|-----------------|-----|
+| N×M integration problem | Universal protocol — each agent/merchant implements once |
+| Trust & payment security | SharedPaymentToken with scoped permissions |
+| UI control | Agent renders UI, merchant controls pricing/fulfillment |
+
+## Demo (60 seconds)
+
+1. Visit [acp-merchant-demo.vercel.app/demo](https://acp-merchant-demo.vercel.app/demo)
+2. Click any product → Checkout card appears, JSON updates (real `POST /api/acp/checkout`)
+3. Change shipping → Totals recalculate (real `POST /api/acp/checkout/update`)
+4. Click "Pay" → Purchase completes (real `POST /api/acp/checkout/complete`)
+5. Expand "ACP REQUESTS" → View full request/response history
+6. Check [Stripe Dashboard](https://dashboard.stripe.com/test/payments) → PaymentIntent created
 
 ## Architecture
 
-```
-┌─────────────┐     ┌─────────────────┐     ┌──────────────┐
-│   User      │────▶│   AI Agent      │────▶│  This Server │
-│   (Buyer)   │     │   (ChatGPT)     │     │  (Merchant)  │
-└─────────────┘     └─────────────────┘     └──────────────┘
-                           │                       │
-                           │                       ▼
-                           │                ┌──────────────┐
-                           │                │   Stripe     │
-                           └───────────────▶│   (Payment)  │
-                                            └──────────────┘
+```mermaid
+flowchart LR
+  subgraph Agent["AI Agent (ChatGPT/Claude)"]
+    UI["Chat Interface"]
+  end
+
+  subgraph Merchant["ACP Merchant Demo (This Project)"]
+    direction TB
+    API["API Routes<br/>/api/acp/*"]
+    CS["Checkout Service"]
+    PS["Payment Service"]
+    STORE["In-Memory Store"]
+  end
+
+  subgraph External["External Services"]
+    STRIPE["Stripe API"]
+  end
+
+  UI -->|"POST /checkout"| API
+  UI -->|"POST /checkout/update"| API
+  UI -->|"POST /checkout/complete"| API
+  
+  API --> CS
+  CS --> STORE
+  CS --> PS
+  PS --> STRIPE
+  
+  STRIPE -->|"PaymentIntent"| PS
+  PS -->|"Order confirmed"| API
+  API -->|"JSON response"| UI
 ```
 
-### Checkout Flow
+**Tech Stack:**
+- Next.js 14 (App Router, TypeScript)
+- Stripe SDK
+- Zod validation
+- Tailwind CSS
+- Vercel (deployment)
 
-```
-CreateCheckout → UpdateCheckout → CompleteCheckout
-     ↓                 ↓                  ↓
-  CREATED    →     PENDING     →  READY_FOR_PAYMENT  →  PROCESSING  →  COMPLETED
-                                                                            ↓
-                                                                         FAILED
-```
-
-## Endpoints
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/acp/checkout` | POST | Create a new checkout session |
-| `/api/acp/checkout/update` | POST | Update checkout (shipping, address) |
+| `/api/acp/checkout` | POST | Create checkout session |
+| `/api/acp/checkout/update` | POST | Update shipping, address, email |
 | `/api/acp/checkout/complete` | POST | Complete with payment token |
-| `/api/acp/webhooks` | POST | Handle Stripe webhooks |
+| `/api/acp/webhooks` | POST | Handle Stripe webhook events |
 | `/api/health` | GET | Health check with store stats |
 | `/.well-known/acp.json` | GET | ACP discovery endpoint |
 
-## Quick Start
+## ACP Protocol Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent as AI Agent
+    participant Merchant as ACP Merchant
+    participant Stripe
+
+    User->>Agent: "Buy running shoes"
+    Agent->>Merchant: POST /checkout {items}
+    Merchant-->>Agent: {checkout_id, shipping_options, total}
+    
+    Agent->>User: "Shipping: Standard or Express?"
+    User->>Agent: "Standard"
+    
+    Agent->>Merchant: POST /checkout/update {shipping_option}
+    Merchant-->>Agent: {updated_total, ready_for_payment}
+    
+    Agent->>User: "Total: $135.98. Confirm?"
+    User->>Agent: "Yes"
+    
+    Agent->>Stripe: Request SharedPaymentToken
+    Stripe-->>Agent: {payment_token}
+    
+    Agent->>Merchant: POST /checkout/complete {payment_token}
+    Merchant->>Stripe: Create PaymentIntent
+    Stripe-->>Merchant: {payment_intent_id}
+    Merchant-->>Agent: {order_id, status: completed}
+    
+    Agent->>User: "Order confirmed! 🎉"
+```
+
+## Quickstart
 
 ```bash
-# Clone and install
+# Clone
 git clone https://github.com/nickcarndt/acp-merchant-demo.git
 cd acp-merchant-demo
+
+# Install
 npm install
 
-# Configure environment
+# Configure
 cp .env.example .env.local
 # Edit .env.local with your Stripe keys
 
-# Run locally
+# Run
 npm run dev
 ```
 
+Open [http://localhost:3000/demo](http://localhost:3000/demo)
+
 ## Environment Variables
 
-```bash
-# Required
-STRIPE_SECRET_KEY=sk_test_...        # Your Stripe test secret key
-STRIPE_WEBHOOK_SECRET=whsec_...      # Stripe webhook signing secret
-ACP_AUTH_TOKEN=your_token_here       # Bearer token for ACP requests
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `STRIPE_SECRET_KEY` | Stripe API secret key (test mode) | Yes |
+| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret | For webhooks |
+| `ACP_AUTH_TOKEN` | Bearer token for ACP endpoints | Yes |
+| `NEXT_PUBLIC_ACP_AUTH_TOKEN` | Client-side auth token | For demo UI |
 
-# Optional
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-```
-
-## Testing
+## Deploy (Vercel)
 
 ```bash
-# Run smoke tests (requires jq)
-./test-acp.sh
-```
-
-### Manual Test Flow
-
-```bash
-# 1. Health check
-curl http://localhost:3000/api/health | jq
-
-# 2. Create checkout
-curl -X POST http://localhost:3000/api/acp/checkout \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer demo_acp_token_12345" \
-  -d '{
-    "checkout_reference_id": "test_001",
-    "line_items": [
-      { "product_id": "prod_running_shoe", "quantity": 1, "variant_id": "var_size_10" }
-    ]
-  }'
-
-# 3. Update with shipping/email (use checkout_id from step 2)
-curl -X POST http://localhost:3000/api/acp/checkout/update \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer demo_acp_token_12345" \
-  -d '{
-    "checkout_id": "YOUR_CHECKOUT_ID",
-    "shipping_option_id": "ship_standard",
-    "buyer_email": "test@example.com",
-    "shipping_address": {
-      "line1": "123 Main St",
-      "city": "San Francisco",
-      "state": "CA",
-      "postal_code": "94102",
-      "country": "US"
-    }
-  }'
-
-# 4. Complete checkout
-curl -X POST http://localhost:3000/api/acp/checkout/complete \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer demo_acp_token_12345" \
-  -d '{
-    "checkout_id": "YOUR_CHECKOUT_ID",
-    "payment_token": "demo_spt_token"
-  }'
-```
-
-## Demo Products
-
-| Product ID | Name | Price |
-|------------|------|-------|
-| `prod_running_shoe` | Performance Running Shoe | $129.99 |
-| `prod_wireless_earbuds` | Pro Wireless Earbuds | $199.99 |
-| `prod_laptop_stand` | Ergonomic Laptop Stand | $79.99 |
-| `prod_water_bottle` | Insulated Water Bottle | $34.99 |
-
-## Shipping Options
-
-| Option ID | Name | Price | Days |
-|-----------|------|-------|------|
-| `ship_standard` | Standard Shipping | $5.99 | 5-7 |
-| `ship_express` | Express Shipping | $12.99 | 2-3 |
-| `ship_overnight` | Overnight Shipping | $24.99 | 1 |
-
-## Project Structure
-
-```
-src/
-├── app/
-│   └── api/
-│       ├── acp/
-│       │   ├── checkout/
-│       │   │   ├── route.ts         # Create checkout
-│       │   │   ├── update/route.ts  # Update checkout
-│       │   │   └── complete/route.ts # Complete checkout
-│       │   └── webhooks/route.ts    # Stripe webhooks
-│       └── health/route.ts          # Health check
-└── lib/
-    ├── middleware/auth.ts           # ACP auth validation
-    ├── schemas/acp.ts               # Zod validation schemas
-    ├── services/
-    │   ├── checkout.ts              # Checkout business logic
-    │   ├── payment.ts               # Stripe integration
-    │   ├── products.ts              # Product catalog
-    │   └── stripe.ts                # Stripe client
-    ├── store/checkouts.ts           # In-memory checkout store
-    └── types/acp.ts                 # TypeScript interfaces
-```
-
-## Deployment
-
-### Vercel
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
 # Deploy
 vercel
 
 # Set environment variables in Vercel dashboard
+# Redeploy
+vercel --prod
 ```
 
-### Stripe Webhooks
-
-1. Go to Stripe Dashboard → Developers → Webhooks
+**Webhook Setup:**
+1. Stripe Dashboard → Developers → Webhooks
 2. Add endpoint: `https://your-app.vercel.app/api/acp/webhooks`
-3. Select events:
-   - `payment_intent.succeeded`
-   - `payment_intent.payment_failed`
-   - `charge.dispute.created`
-4. Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
+3. Select events: `payment_intent.succeeded`, `payment_intent.payment_failed`
+4. Copy signing secret to Vercel env vars
+
+## Testing
+
+```bash
+# Smoke test (local)
+./test-acp.sh
+
+# Smoke test (production)
+./test-acp-prod.sh
+```
 
 ## Related Projects
 
-- [MCP Server](https://github.com/nickcarndt/mcp-partner-integration-demo) - AI agent tools for Stripe/Shopify
+| Project | Description |
+|---------|-------------|
+| [MCP Server](https://github.com/nickcarndt/mcp-partner-integration-demo) | AI agent tools for Stripe/Shopify (agent side) |
+| [Chatbot with Memory](https://github.com/nickcarndt/chatbot-with-memory) | Full-stack AI chatbot with MCP integration |
 
 ## Resources
 
 - [ACP Specification](https://agenticcommerce.dev)
 - [Stripe ACP Docs](https://docs.stripe.com/agentic-commerce/protocol)
 - [OpenAI Commerce Docs](https://developers.openai.com/commerce)
-- [SharedPaymentToken Docs](https://docs.stripe.com/agentic-commerce/concepts/shared-payment-tokens)
+- [SharedPaymentToken](https://docs.stripe.com/agentic-commerce/concepts/shared-payment-tokens)
 
 ## Author
 
-Nicholas Arndt - [GitHub](https://github.com/nickcarndt)
+**Nicholas Arndt** — [GitHub](https://github.com/nickcarndt) · [LinkedIn](https://linkedin.com/in/nicholasarndt)
 
----
+## License
 
-*Built for Stripe SA Interview Demo - January 2025*
+MIT

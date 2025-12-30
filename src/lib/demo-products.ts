@@ -28,8 +28,8 @@ export const DEMO_PRODUCTS: DemoProduct[] = [
     merchant: 'TechShop',
   },
   {
-    id: 'prod_laptop_stand',
-    name: 'Ergonomic Laptop Stand',
+    id: 'prod_ergonomic_mouse',
+    name: 'Ergonomic Mouse',
     variant: 'Silver',
     price: 7999,
     priceFormatted: '$79.99',

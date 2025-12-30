@@ -33,9 +33,9 @@ export const DEMO_PRODUCTS: Product[] = [
     ],
   },
   {
-    id: 'prod_laptop_stand',
-    name: 'Ergonomic Laptop Stand',
-    description: 'Aluminum laptop stand with adjustable height for better posture.',
+    id: 'prod_ergonomic_mouse',
+    name: 'Ergonomic Mouse',
+    description: 'Wireless ergonomic mouse designed for comfort and productivity.',
     price: { amount: 7999, currency: 'usd' },
     images: ['https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400'],
     in_stock: true,

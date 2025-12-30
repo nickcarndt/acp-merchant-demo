@@ -2,6 +2,7 @@
 
 import { AgentPanel } from './AgentPanel';
 import { BusinessPanel } from './BusinessPanel';
+import { FlowConnector } from './FlowConnector';
 import { useAcpDemo } from '@/hooks/useAcpDemo';
 
 export function DemoContainer() {
@@ -25,13 +26,8 @@ export function DemoContainer() {
           />
         </div>
 
-        {/* Arrow Between Panels (Desktop only) */}
-        <div className="hidden lg:flex absolute left-1/2 top-1/3 -translate-x-1/2 z-10 pointer-events-none">
-          <div className="flex items-center text-white/60">
-            <div className="w-8 border-t-2 border-dashed border-white/40"></div>
-            <div className="w-3 h-3 border-t-2 border-r-2 border-white/40 transform rotate-45 -ml-1"></div>
-          </div>
-        </div>
+        {/* Animated Arrow Between Panels */}
+        <FlowConnector direction={demo.arrowDirection} />
 
         {/* Business Panel (Right) */}
         <div className="relative">

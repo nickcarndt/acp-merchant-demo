@@ -27,6 +27,7 @@ export function useAcpDemo() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuantity, setCurrentQuantity] = useState(1);
   const [currentShipping, setCurrentShipping] = useState('ship_standard');
+  const [arrowDirection, setArrowDirection] = useState<'none' | 'request' | 'response'>('none');
 
   const addAcpRequest = (method: string, endpoint: string, request: any, response: any) => {
     const newRequest: AcpRequest = {
@@ -90,6 +91,9 @@ export function useAcpDemo() {
     setSelectedProduct(product);
     setCurrentQuantity(1);
     setCurrentShipping('ship_standard');
+    setArrowDirection('request');
+    
+    const requestStartTime = Date.now();
     
     const createRequestBody = {
       checkout_reference_id: `demo_${Date.now()}`,
@@ -157,9 +161,20 @@ export function useAcpDemo() {
       const acpFormat = transformToAcpFormat(updateData, product, 'ship_standard', 1);
       setCheckoutState(acpFormat);
       
+      // Ensure request animation completes before starting response animation
+      const elapsed = Date.now() - requestStartTime;
+      const minRequestAnimationTime = 450;
+      const delay = Math.max(0, minRequestAnimationTime - elapsed);
+      
+      setTimeout(() => {
+        setArrowDirection('response');
+        setTimeout(() => setArrowDirection('none'), 500);
+      }, delay);
+      
       setStep('checkout');
     } catch (error) {
       console.error('Error creating checkout:', error);
+      setArrowDirection('none');
     } finally {
       setIsLoading(false);
     }
@@ -180,6 +195,9 @@ export function useAcpDemo() {
     
     setCurrentShipping(shippingId);
     setIsLoading(true);
+    setArrowDirection('request');
+    
+    const requestStartTime = Date.now();
 
     const requestBody = {
       checkout_id: checkoutId,
@@ -214,8 +232,19 @@ export function useAcpDemo() {
       // Update display format with current quantity
       const acpFormat = transformToAcpFormat(data, selectedProduct, shippingId, currentQuantity);
       setCheckoutState(acpFormat);
+      
+      // Ensure request animation completes before starting response animation
+      const elapsed = Date.now() - requestStartTime;
+      const minRequestAnimationTime = 450; // Slightly longer than 400ms animation
+      const delay = Math.max(0, minRequestAnimationTime - elapsed);
+      
+      setTimeout(() => {
+        setArrowDirection('response');
+        setTimeout(() => setArrowDirection('none'), 500);
+      }, delay);
     } catch (error) {
       console.error('Error updating checkout:', error);
+      setArrowDirection('none');
     } finally {
       setIsLoading(false);
     }
@@ -225,6 +254,9 @@ export function useAcpDemo() {
     if (!checkoutId || !selectedProduct) return;
     
     setIsLoading(true);
+    setArrowDirection('request');
+    
+    const requestStartTime = Date.now();
 
     const requestBody = {
       checkout_id: checkoutId,
@@ -256,9 +288,20 @@ export function useAcpDemo() {
       };
       setCheckoutState(acpFormat);
       
+      // Ensure request animation completes before starting response animation
+      const elapsed = Date.now() - requestStartTime;
+      const minRequestAnimationTime = 450;
+      const delay = Math.max(0, minRequestAnimationTime - elapsed);
+      
+      setTimeout(() => {
+        setArrowDirection('response');
+        setTimeout(() => setArrowDirection('none'), 500);
+      }, delay);
+      
       setStep('complete');
     } catch (error) {
       console.error('Error completing checkout:', error);
+      setArrowDirection('none');
     } finally {
       setIsLoading(false);
     }
@@ -274,6 +317,7 @@ export function useAcpDemo() {
     setAcpRequests([]);
     setCurrentQuantity(1);
     setCurrentShipping('ship_standard');
+    setArrowDirection('none');
   }, []);
 
   return {
@@ -284,6 +328,7 @@ export function useAcpDemo() {
     orderData,
     acpRequests,
     isLoading,
+    arrowDirection,
     selectProduct,
     selectShipping,
     updateQuantity,
