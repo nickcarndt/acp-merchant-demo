@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const { checkout_id, payment_token } = parseResult.data;
     
     // Get checkout
-    const checkout = CheckoutService.getCheckout(checkout_id);
+    const checkout = await CheckoutService.getCheckout(checkout_id);
     if (!checkout) {
       return NextResponse.json(
         { error: { code: 'not_found', message: 'Checkout not found' } },
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Mark as processing
-    CheckoutService.markProcessing(checkout_id, 'pending');
+    await CheckoutService.markProcessing(checkout_id, 'pending');
     
     try {
       // Create PaymentIntent
@@ -88,12 +88,12 @@ export async function POST(request: NextRequest) {
       );
       
       // Update with PaymentIntent ID
-      CheckoutService.markProcessing(checkout_id, paymentResult.paymentIntentId);
+      await CheckoutService.markProcessing(checkout_id, paymentResult.paymentIntentId);
       
       // In demo mode, we mark as completed immediately
       // In production, you'd wait for webhook confirmation
       const orderId = `ord_${uuidv4().replace(/-/g, '').slice(0, 16)}`;
-      CheckoutService.markCompleted(checkout_id, orderId);
+      await CheckoutService.markCompleted(checkout_id, orderId);
       
       console.log(`[${requestId}] Checkout completed: ${checkout_id} -> Order: ${orderId}`);
       
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         ? paymentError.message 
         : 'Payment processing failed';
       
-      CheckoutService.markFailed(checkout_id, errorMessage);
+      await CheckoutService.markFailed(checkout_id, errorMessage);
       
       return NextResponse.json({
         checkout_id,

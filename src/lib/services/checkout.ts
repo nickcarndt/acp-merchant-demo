@@ -26,7 +26,7 @@ export class CheckoutService {
   /**
    * Create a new checkout session
    */
-  static createCheckout(request: CreateCheckoutRequest): CreateCheckoutResponse {
+  static async createCheckout(request: CreateCheckoutRequest): Promise<CreateCheckoutResponse> {
     // Resolve line items (validate products exist, calculate prices)
     const resolvedItems = this.resolveLineItems(request.line_items);
     
@@ -56,7 +56,7 @@ export class CheckoutService {
     };
     
     // Store the session
-    CheckoutStore.create(session);
+    await CheckoutStore.create(session);
     
     // Return response
     return {
@@ -74,8 +74,8 @@ export class CheckoutService {
   /**
    * Update an existing checkout session
    */
-  static updateCheckout(request: UpdateCheckoutRequest): UpdateCheckoutResponse {
-    const session = CheckoutStore.get(request.checkout_id);
+  static async updateCheckout(request: UpdateCheckoutRequest): Promise<UpdateCheckoutResponse> {
+    const session = await CheckoutStore.get(request.checkout_id);
     if (!session) {
       throw new Error(`Checkout not found: ${request.checkout_id}`);
     }
@@ -115,24 +115,27 @@ export class CheckoutService {
     }
     
     // Apply updates
-    const updatedSession = CheckoutStore.update(request.checkout_id, updates);
+    const updatedSession = await CheckoutStore.update(request.checkout_id, updates);
     if (!updatedSession) {
       throw new Error('Failed to update checkout');
     }
     
     // Recalculate total
     const total = this.calculateTotal(updatedSession);
-    CheckoutStore.update(request.checkout_id, { total });
+    await CheckoutStore.update(request.checkout_id, { total });
     
     // Determine remaining required fields
     const remainingRequired = this.getRemainingRequiredFields(updatedSession);
-    CheckoutStore.update(request.checkout_id, { 
+    await CheckoutStore.update(request.checkout_id, { 
       required_fields: remainingRequired,
       status: remainingRequired.length === 0 ? 'ready_for_payment' : 'pending',
     });
     
     // Get final session state
-    const finalSession = CheckoutStore.get(request.checkout_id)!;
+    const finalSession = await CheckoutStore.get(request.checkout_id);
+    if (!finalSession) {
+      throw new Error('Failed to get updated checkout');
+    }
     
     return {
       checkout_id: finalSession.checkout_id,
@@ -149,15 +152,15 @@ export class CheckoutService {
   /**
    * Get checkout session by ID
    */
-  static getCheckout(checkoutId: string): CheckoutSession | undefined {
-    return CheckoutStore.get(checkoutId);
+  static async getCheckout(checkoutId: string): Promise<CheckoutSession | undefined> {
+    return await CheckoutStore.get(checkoutId);
   }
 
   /**
    * Mark checkout as processing (payment in progress)
    */
-  static markProcessing(checkoutId: string, paymentIntentId: string): void {
-    CheckoutStore.update(checkoutId, {
+  static async markProcessing(checkoutId: string, paymentIntentId: string): Promise<void> {
+    await CheckoutStore.update(checkoutId, {
       status: 'processing',
       payment_intent_id: paymentIntentId,
     });
@@ -166,8 +169,8 @@ export class CheckoutService {
   /**
    * Mark checkout as completed
    */
-  static markCompleted(checkoutId: string, orderId: string): void {
-    CheckoutStore.update(checkoutId, {
+  static async markCompleted(checkoutId: string, orderId: string): Promise<void> {
+    await CheckoutStore.update(checkoutId, {
       status: 'completed',
       order_id: orderId,
     });
@@ -176,8 +179,8 @@ export class CheckoutService {
   /**
    * Mark checkout as failed
    */
-  static markFailed(checkoutId: string, reason: string): void {
-    CheckoutStore.update(checkoutId, {
+  static async markFailed(checkoutId: string, reason: string): Promise<void> {
+    await CheckoutStore.update(checkoutId, {
       status: 'failed',
       failure_reason: reason,
     });
@@ -270,4 +273,3 @@ export class CheckoutService {
     return remaining;
   }
 }
-

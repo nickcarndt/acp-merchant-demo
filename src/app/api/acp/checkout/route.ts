@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Create checkout
-    const checkout = CheckoutService.createCheckout(parseResult.data);
+    const checkout = await CheckoutService.createCheckout(parseResult.data);
     console.log(`[${requestId}] Checkout created: ${checkout.checkout_id}`);
     
     return NextResponse.json(checkout, { status: 201 });

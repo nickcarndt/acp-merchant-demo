@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Update checkout
-    const result = CheckoutService.updateCheckout(parseResult.data);
+    const result = await CheckoutService.updateCheckout(parseResult.data);
     console.log(`[${requestId}] Checkout updated: ${result.checkout_id} -> ${result.status}`);
     
     return NextResponse.json(result);
