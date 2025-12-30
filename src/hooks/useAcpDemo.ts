@@ -25,6 +25,7 @@ export function useAcpDemo() {
   const [orderData, setOrderData] = useState<any>(null);
   const [acpRequests, setAcpRequests] = useState<AcpRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [currentQuantity, setCurrentQuantity] = useState(1);
   const [currentShipping, setCurrentShipping] = useState('ship_standard');
   const [arrowDirection, setArrowDirection] = useState<'none' | 'request' | 'response'>('none');
@@ -298,7 +299,7 @@ export function useAcpDemo() {
   const completePurchase = useCallback(async () => {
     if (!checkoutId || !selectedProduct) return;
     
-    setIsLoading(true);
+    setIsPaymentProcessing(true);
     setArrowDirection('request');
     
     const requestStartTime = Date.now();
@@ -348,7 +349,7 @@ export function useAcpDemo() {
       console.error('Error completing checkout:', error);
       setArrowDirection('none');
     } finally {
-      setIsLoading(false);
+      setIsPaymentProcessing(false);
     }
   }, [checkoutId, selectedProduct, checkoutState]);
 
@@ -363,6 +364,7 @@ export function useAcpDemo() {
     setCurrentQuantity(1);
     setCurrentShipping('ship_standard');
     setArrowDirection('none');
+    setIsPaymentProcessing(false);
   }, []);
 
   return {
@@ -373,6 +375,7 @@ export function useAcpDemo() {
     orderData,
     acpRequests,
     isLoading,
+    isPaymentProcessing,
     arrowDirection,
     currentQuantity,
     selectProduct,

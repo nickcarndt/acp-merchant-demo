@@ -13,6 +13,7 @@ interface AgentPanelProps {
   checkoutData: any;
   orderData: any;
   isLoading: boolean;
+  isPaymentProcessing: boolean;
   onProductSelect: (product: DemoProduct) => void;
   onShippingSelect: (shippingId: string) => void;
   onQuantityChange: (quantity: number) => void;
@@ -25,6 +26,7 @@ export function AgentPanel({
   checkoutData,
   orderData,
   isLoading,
+  isPaymentProcessing,
   onProductSelect,
   onShippingSelect,
   onQuantityChange,
@@ -105,7 +107,7 @@ export function AgentPanel({
             onQuantityChange={handleQuantityChange}
             onShippingChange={handleShippingChange}
             onPay={onPay}
-            isLoading={isLoading}
+            isLoading={isPaymentProcessing}
             total={total}
           />
         </div>
