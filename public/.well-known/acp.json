@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "name": "ACP Merchant Demo",
+  "description": "Demo merchant implementation of Agentic Commerce Protocol",
+  "endpoints": {
+    "checkout": "/api/acp/checkout",
+    "checkout_update": "/api/acp/checkout/update",
+    "checkout_complete": "/api/acp/checkout/complete",
+    "webhooks": "/api/acp/webhooks"
+  },
+  "supported_currencies": ["usd"],
+  "supported_countries": ["US"],
+  "capabilities": {
+    "shipping": true,
+    "tax_calculation": false,
+    "subscriptions": false
+  }
+}
+
