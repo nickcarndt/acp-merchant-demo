@@ -18,18 +18,6 @@ let totalCreated = 0;
 let totalCompleted = 0;
 let totalFailed = 0;
 
-async function isRedisAvailable(): Promise<boolean> {
-  if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
-    return false;
-  }
-  try {
-    await kv.ping();
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export const CheckoutStore = {
   /**
    * Create a new checkout session

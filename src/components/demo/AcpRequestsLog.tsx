@@ -6,8 +6,8 @@ interface AcpRequest {
   id: string;
   method: string;
   endpoint: string;
-  request: any;
-  response: any;
+  request: Record<string, unknown>;
+  response: Record<string, unknown>;
   timestamp: Date;
 }
 

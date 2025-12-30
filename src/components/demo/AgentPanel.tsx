@@ -5,14 +5,24 @@ import { ProductCard } from './ProductCard';
 import { CheckoutCard } from './CheckoutCard';
 import { SuccessCard } from './SuccessCard';
 import { DemoStep } from '@/hooks/useAcpDemo';
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+
+interface CheckoutData {
+  checkout_id?: string;
+  line_items?: Array<{ item?: { quantity?: number } }>;
+  [key: string]: unknown;
+}
+
+interface OrderData {
+  order_id?: string;
+  [key: string]: unknown;
+}
 
 interface AgentPanelProps {
   step: DemoStep;
   selectedProduct: DemoProduct | null;
-  checkoutData: any;
-  orderData: any;
-  isLoading: boolean;
+  checkoutData: CheckoutData | null;
+  orderData: OrderData | null;
   isPaymentProcessing: boolean;
   onProductSelect: (product: DemoProduct) => void;
   onShippingSelect: (shippingId: string) => void;
@@ -20,30 +30,26 @@ interface AgentPanelProps {
   onPay: () => void;
 }
 
-export function AgentPanel({
-  step,
+// Separate component to reset state when product changes via key prop
+function CheckoutSection({
   selectedProduct,
-  checkoutData,
-  orderData,
-  isLoading,
   isPaymentProcessing,
-  onProductSelect,
-  onShippingSelect,
+  onShippingChange,
   onQuantityChange,
   onPay,
-}: AgentPanelProps) {
+}: {
+  selectedProduct: DemoProduct;
+  isPaymentProcessing: boolean;
+  onShippingChange: (shippingId: string) => void;
+  onQuantityChange: (quantity: number) => void;
+  onPay: () => void;
+}) {
   const [selectedShipping, setSelectedShipping] = useState('ship_standard');
-  const [showProducts, setShowProducts] = useState(false);
   const [quantity, setQuantity] = useState(1);
-
-  // Reset quantity when product changes
-  useEffect(() => {
-    setQuantity(1);
-  }, [selectedProduct]);
-
+  
   const handleShippingChange = (shippingId: string) => {
     setSelectedShipping(shippingId);
-    onShippingSelect(shippingId);
+    onShippingChange(shippingId);
   };
 
   const handleQuantityChange = (newQuantity: number) => {
@@ -52,7 +58,48 @@ export function AgentPanel({
   };
 
   const shippingOption = SHIPPING_OPTIONS.find(s => s.id === selectedShipping) || SHIPPING_OPTIONS[0];
-  const total = selectedProduct ? (selectedProduct.price * quantity) + shippingOption.price : 0;
+  const total = (selectedProduct.price * quantity) + shippingOption.price;
+
+  return (
+    <CheckoutCard
+      product={selectedProduct}
+      quantity={quantity}
+      selectedShipping={selectedShipping}
+      onQuantityChange={handleQuantityChange}
+      onShippingChange={handleShippingChange}
+      onPay={onPay}
+      isLoading={isPaymentProcessing}
+      total={total}
+    />
+  );
+}
+
+export function AgentPanel({
+  step,
+  selectedProduct,
+  checkoutData,
+  orderData,
+  isPaymentProcessing,
+  onProductSelect,
+  onShippingSelect,
+  onQuantityChange,
+  onPay,
+}: AgentPanelProps) {
+  const [showProducts, setShowProducts] = useState(false);
+  
+  // Get quantity and total from checkoutData for success card display
+  const displayQuantity = useMemo(() => {
+    if (checkoutData?.line_items && Array.isArray(checkoutData.line_items)) {
+      return checkoutData.line_items[0]?.item?.quantity ?? 1;
+    }
+    return 1;
+  }, [checkoutData]);
+  
+  const displayTotal = useMemo(() => {
+    if (!selectedProduct) return 0;
+    const shippingOption = SHIPPING_OPTIONS[0];
+    return (selectedProduct.price * displayQuantity) + shippingOption.price;
+  }, [selectedProduct, displayQuantity]);
 
   return (
     <div className="bg-slate-100 rounded-2xl p-6 min-h-[600px]">
@@ -97,18 +144,16 @@ export function AgentPanel({
         </div>
       )}
 
-      {/* Checkout Card */}
+      {/* Checkout Card - key prop resets state when product changes */}
       {step === 'checkout' && selectedProduct && (
         <div className="mt-4">
-          <CheckoutCard
-            product={selectedProduct}
-            quantity={quantity}
-            selectedShipping={selectedShipping}
-            onQuantityChange={handleQuantityChange}
-            onShippingChange={handleShippingChange}
+          <CheckoutSection
+            key={selectedProduct.id}
+            selectedProduct={selectedProduct}
+            isPaymentProcessing={isPaymentProcessing}
+            onShippingChange={onShippingSelect}
+            onQuantityChange={onQuantityChange}
             onPay={onPay}
-            isLoading={isPaymentProcessing}
-            total={total}
           />
         </div>
       )}
@@ -118,9 +163,9 @@ export function AgentPanel({
         <div className="mt-4">
           <SuccessCard
             product={selectedProduct}
-            orderId={checkoutData?.checkout_id || orderData?.order_id || 'ord_demo'}
-            total={total}
-            quantity={quantity}
+            orderId={checkoutData?.checkout_id ?? orderData?.order_id ?? 'ord_demo'}
+            total={displayTotal}
+            quantity={displayQuantity}
           />
         </div>
       )}

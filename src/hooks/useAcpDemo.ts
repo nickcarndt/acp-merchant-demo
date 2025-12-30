@@ -9,8 +9,8 @@ interface AcpRequest {
   id: string;
   method: string;
   endpoint: string;
-  request: any;
-  response: any;
+  request: Record<string, unknown>;
+  response: Record<string, unknown>;
   timestamp: Date;
 }
 
@@ -20,9 +20,9 @@ export function useAcpDemo() {
   const [step, setStep] = useState<DemoStep>('products');
   const [selectedProduct, setSelectedProduct] = useState<DemoProduct | null>(null);
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
-  const [checkoutData, setCheckoutData] = useState<any>(null);
-  const [checkoutState, setCheckoutState] = useState<any>(null);
-  const [orderData, setOrderData] = useState<any>(null);
+  const [checkoutData, setCheckoutData] = useState<Record<string, unknown> | null>(null);
+  const [checkoutState, setCheckoutState] = useState<Record<string, unknown> | null>(null);
+  const [orderData, setOrderData] = useState<Record<string, unknown> | null>(null);
   const [acpRequests, setAcpRequests] = useState<AcpRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
@@ -30,7 +30,7 @@ export function useAcpDemo() {
   const [currentShipping, setCurrentShipping] = useState('ship_standard');
   const [arrowDirection, setArrowDirection] = useState<'none' | 'request' | 'response'>('none');
 
-  const addAcpRequest = (method: string, endpoint: string, request: any, response: any) => {
+  const addAcpRequest = (method: string, endpoint: string, request: Record<string, unknown>, response: Record<string, unknown>) => {
     const newRequest: AcpRequest = {
       id: `req_${Date.now()}`,
       method,
@@ -43,7 +43,7 @@ export function useAcpDemo() {
   };
 
   // Transform API response to ACP-style format for display
-  const transformToAcpFormat = (apiResponse: any, product: DemoProduct, shippingId: string = 'ship_standard', quantity: number = 1) => {
+  const transformToAcpFormat = (apiResponse: Record<string, unknown>, product: DemoProduct, shippingId: string = 'ship_standard', quantity: number = 1) => {
     const shipping = SHIPPING_OPTIONS.find(s => s.id === shippingId) || SHIPPING_OPTIONS[0];
     const itemTotal = product.price * quantity;
     

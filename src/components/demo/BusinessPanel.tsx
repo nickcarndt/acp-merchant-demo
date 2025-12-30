@@ -7,13 +7,13 @@ interface AcpRequest {
   id: string;
   method: string;
   endpoint: string;
-  request: any;
-  response: any;
+  request: Record<string, unknown>;
+  response: Record<string, unknown>;
   timestamp: Date;
 }
 
 interface BusinessPanelProps {
-  checkoutState: any;
+  checkoutState: Record<string, unknown> | null;
   acpRequests: AcpRequest[];
 }
 

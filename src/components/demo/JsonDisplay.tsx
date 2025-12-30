@@ -1,7 +1,7 @@
 'use client';
 
 interface JsonDisplayProps {
-  data: any;
+  data: Record<string, unknown>;
   className?: string;
 }
 

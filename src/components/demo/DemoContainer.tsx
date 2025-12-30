@@ -18,7 +18,6 @@ export function DemoContainer() {
             selectedProduct={demo.selectedProduct}
             checkoutData={demo.checkoutData}
             orderData={demo.orderData}
-            isLoading={demo.isLoading}
             isPaymentProcessing={demo.isPaymentProcessing}
             onProductSelect={demo.selectProduct}
             onShippingSelect={demo.selectShipping}

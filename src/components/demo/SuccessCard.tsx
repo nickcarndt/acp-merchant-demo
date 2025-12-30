@@ -70,7 +70,7 @@ export function SuccessCard({ product, orderId, total, quantity }: SuccessCardPr
       {/* Confirmation Message */}
       <div className="px-4 pb-4">
         <p className="text-sm text-gray-600 leading-relaxed">
-          🎉 {product.merchant} confirmed your order! You'll get a confirmation email soon. 
+          🎉 {product.merchant} confirmed your order! You&apos;ll get a confirmation email soon. 
           If you have questions, follow up with {product.merchant} directly.
         </p>
       </div>
