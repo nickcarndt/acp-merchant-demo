@@ -38,9 +38,9 @@ Reference implementation of the [Agentic Commerce Protocol](https://agenticcomme
       <sub><b>Request Log</b> — Full protocol request/response history.</sub>
     </td>
     <td align="center" width="50%">
-      <img src="screenshots/stripe-dashboard.png" width="420" alt="Stripe dashboard" />
+      <img src="screenshots/stripe-transaction.png" width="420" alt="Stripe transaction with ACP metadata" />
       <br/>
-      <sub><b>Stripe Dashboard</b> — Real transactions from demo (test mode).</sub>
+      <sub><b>Stripe Transaction</b> — Real payment with <code>acp_checkout_id</code> metadata linking systems.</sub>
     </td>
   </tr>
 </table>
